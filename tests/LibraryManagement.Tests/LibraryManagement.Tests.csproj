@@ -22,4 +22,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LibraryManagement.API\LibraryManagement.API.csproj" />
+    <ProjectReference Include="..\..\src\LibraryManagement.Core\LibraryManagement.Core.csproj" />
+    <ProjectReference Include="..\..\src\LibraryManagement.Infrastructure\LibraryManagement.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
