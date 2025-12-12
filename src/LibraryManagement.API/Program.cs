@@ -1,13 +1,38 @@
+// Program.cs
+using Microsoft.EntityFrameworkCore;
+using LibraryManagement.Infrastructure.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// ========== SERVICES CONFIGURATION ==========
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 🔗 Database Connection - POSTGRESQL
+// Pobiera connection string z appsettings.json
+builder.Services.AddDbContext<LibraryDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ========== DATABASE MIGRATION ==========
+// Automatycznie tworzy bazę przy starcie (TYLKO DEVELOPMENT!)
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+    
+    // Metoda 1: Tylko tworzy tabele (bez historii migracji)
+    dbContext.Database.EnsureCreated();
+    
+    // Metoda 2: Jeśli chcesz pełne migracje - ODKOMENTUJ, a zakomentuj powyższą linię
+    // dbContext.Database.Migrate();
+    
+    Console.WriteLine("✅ Database created successfully!");
+}
+
+// ========== MIDDLEWARE PIPELINE ==========
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -15,30 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

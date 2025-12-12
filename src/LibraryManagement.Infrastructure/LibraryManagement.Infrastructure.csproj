@@ -15,4 +15,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <EfCoreMigrationsDir>Data/Migrations</EfCoreMigrationsDir>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\LibraryManagement.Core\LibraryManagement.Core.csproj" />
+  </ItemGroup>
+
 </Project>
