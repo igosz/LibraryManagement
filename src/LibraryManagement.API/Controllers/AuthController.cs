@@ -57,5 +57,38 @@ namespace LibraryManagement.API.Controllers
                 Message = "User registered successfully"
             });
         }
+        
+        
+        
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto loginDto)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(
+                loginDto.Password,
+                user.PasswordHash);
+
+            if (!passwordValid)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
+            var response = new AuthResponseDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                Message = "Login successful"
+            };
+
+            return Ok(response);
+        }
     }
 }
