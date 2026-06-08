@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using LibraryManagement.API.DTOs;
 using LibraryManagement.Core.Entities;
 using LibraryManagement.Infrastructure.Data;
+using LibraryManagement.API.Services;
+
 
 namespace LibraryManagement.API.Controllers
 {
@@ -11,10 +13,14 @@ namespace LibraryManagement.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly LibraryDbContext _context;
+        private readonly JwtService _jwtService;
 
-        public AuthController(LibraryDbContext context)
+        public AuthController(
+            LibraryDbContext context,
+            JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         [HttpPost("register")]
@@ -80,15 +86,15 @@ namespace LibraryManagement.API.Controllers
                 return Unauthorized("Invalid email or password");
             }
 
-            var response = new AuthResponseDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                Message = "Login successful"
-            };
+            var token = _jwtService.GenerateToken(user);
 
-            return Ok(response);
+            return Ok(new
+            {
+                Token = token,
+                UserId = user.Id,
+                Username = user.Username,
+                Email = user.Email
+            });
         }
     }
 }
