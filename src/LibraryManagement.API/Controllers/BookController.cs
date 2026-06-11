@@ -203,13 +203,13 @@ namespace LibraryManagement.API.Controllers
                 if (book == null)
                     return NotFound($"Book with id {id} not found");
                 
-                // Sprawdź czy książka jest wypożyczona
-                var activeLoans = await _context.Loans
-                    .AnyAsync(l => l.BookId == id && !l.IsReturned);
-                    
-                if (activeLoans)
-                    return BadRequest("Cannot delete book that has active loans");
-                
+                // Sprawdź czy istnieje historia wypożyczeń
+                var hasLoans = await _context.Loans
+                    .AnyAsync(l => l.BookId == id);
+
+                if (hasLoans)
+                    return BadRequest("Cannot delete book because loan history exists");
+
                 _context.Books.Remove(book);
                 await _context.SaveChangesAsync();
                 
