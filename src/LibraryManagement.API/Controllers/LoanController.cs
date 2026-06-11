@@ -16,6 +16,33 @@ namespace LibraryManagement.API.Controllers
         {
             _context = context;
         }
+        
+        
+        // GET: api/loan
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<LoanDto>>> GetLoans()
+        {
+            var loans = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.User)
+                .ToListAsync();
+
+            var loanDtos = loans.Select(l => new LoanDto
+            {
+                Id = l.Id,
+                BookId = l.BookId,
+                BookTitle = l.Book.Title,
+                UserId = l.UserId,
+                Username = l.User.Username,
+                LoanDate = l.LoanDate,
+                DueDate = l.DueDate,
+                ReturnDate = l.ReturnDate,
+                IsReturned = l.IsReturned,
+                IsOverdue = l.IsOverdue
+            });
+
+            return Ok(loanDtos);
+        }
 
         // POST: api/loan
         [HttpPost]
@@ -90,5 +117,91 @@ namespace LibraryManagement.API.Controllers
 
             return Ok("Book returned successfully");
         }
+        
+        
+        // GET: api/loan/1
+        [HttpGet("{id}")]
+        public async Task<ActionResult<LoanDto>> GetLoan(int id)
+        {
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan == null)
+                return NotFound($"Loan with id {id} not found");
+
+            return Ok(new LoanDto
+            {
+                Id = loan.Id,
+                BookId = loan.BookId,
+                BookTitle = loan.Book.Title,
+                UserId = loan.UserId,
+                Username = loan.User.Username,
+                LoanDate = loan.LoanDate,
+                DueDate = loan.DueDate,
+                ReturnDate = loan.ReturnDate,
+                IsReturned = loan.IsReturned,
+                IsOverdue = loan.IsOverdue
+            });
+        }
+        
+        // GET: api/loan/active
+        [HttpGet("active")]
+        public async Task<ActionResult<IEnumerable<LoanDto>>> GetActiveLoans()
+        {
+            var loans = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.User)
+                .Where(l => l.ReturnDate == null)
+                .ToListAsync();
+
+            var loanDtos = loans.Select(l => new LoanDto
+            {
+                Id = l.Id,
+                BookId = l.BookId,
+                BookTitle = l.Book.Title,
+                UserId = l.UserId,
+                Username = l.User.Username,
+                LoanDate = l.LoanDate,
+                DueDate = l.DueDate,
+                ReturnDate = l.ReturnDate,
+                IsReturned = l.IsReturned,
+                IsOverdue = l.IsOverdue
+            });
+
+            return Ok(loanDtos);
+        }
+        
+        
+        // GET: api/loan/overdue
+        [HttpGet("overdue")]
+        public async Task<ActionResult<IEnumerable<LoanDto>>> GetOverdueLoans()
+        {
+            var loans = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.User)
+                .Where(l => l.ReturnDate == null &&
+                            l.DueDate < DateTime.UtcNow)
+                .ToListAsync();
+
+            var loanDtos = loans.Select(l => new LoanDto
+            {
+                Id = l.Id,
+                BookId = l.BookId,
+                BookTitle = l.Book.Title,
+                UserId = l.UserId,
+                Username = l.User.Username,
+                LoanDate = l.LoanDate,
+                DueDate = l.DueDate,
+                ReturnDate = l.ReturnDate,
+                IsReturned = l.IsReturned,
+                IsOverdue = l.IsOverdue
+            });
+
+            return Ok(loanDtos);
+        }
     }
+    
+    
 }
